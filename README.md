@@ -4,25 +4,11 @@ Go SDK for [Duitku POP](https://docs.duitku.com/pop/en/) payment gateway — ser
 
 ## Install
 
-Core (zero dependencies):
-
 ```bash
 go get github.com/rachmanzz/go-duitku-client
 ```
 
-Adapter framework (optional — pilih sesuai framework):
-
-```bash
-go get github.com/rachmanzz/go-duitku-client/callbackgin
-# atau
-go get github.com/rachmanzz/go-duitku-client/callbackecho
-# atau
-go get github.com/rachmanzz/go-duitku-client/callbackfiber
-# atau
-go get github.com/rachmanzz/go-duitku-client/callbackgoravel
-```
-
-> Setiap adapter adalah Go module terpisah — dependency framework cuma kepasang kalau beneran pake adapter itu.
+Zero dependencies.
 
 ## Usage
 
@@ -80,15 +66,9 @@ if err != nil {
 
 ### Handle Callback
 
-Semua callback dari Duitku dikirim sebagai POST form. Library ini nyediain 3 cara handle:
+Semua callback dari Duitku dikirim sebagai POST form. Cukup pake `ProcessCallback` — works with any framework:
 
-1. Manual — `ProcessCallback(r.PostForm, handler)` — bebas pake framework apapun
-2. Via `http.Handler` — `client.CallbackHandler(handler)` — tinggal mount di router
-3. Adapter khusus framework
-
-Pilih aja sesuai framework yang dipake.
-
-#### net/http (standard library)
+#### net/http
 
 ```go
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
@@ -110,102 +90,63 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-Atau pakai `CallbackHandler`:
-
-```go
-http.Handle("/callback", c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
-    // handle callback
-    return nil
-}))
-```
-
 #### Gin
 
 ```go
-import "github.com/rachmanzz/duitku-client/callbackgin"
-
 r.POST("/callback", func(c *gin.Context) {
-    callbackgin.Handle(c, client, func(cb *duitku.CallbackRequest) error {
-        // update order status based on cb.ResultCode
+    r := c.Request
+    r.ParseForm()
+    err := client.ProcessCallback(r.PostForm, func(cb *duitku.CallbackRequest) error {
+        // handle callback
         return nil
     })
+    if err != nil {
+        c.String(400, err.Error())
+        return
+    }
+    c.String(200, "OK")
 })
-```
-
-Atau via `gin.WrapH`:
-
-```go
-r.POST("/callback", gin.WrapH(c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
-    // handle callback
-    return nil
-})))
 ```
 
 #### Echo
 
 ```go
-import "github.com/rachmanzz/duitku-client/callbackecho"
-
 e.POST("/callback", func(c echo.Context) error {
-    return callbackecho.Handle(c, client, func(cb *duitku.CallbackRequest) error {
-        // update order status based on cb.ResultCode
+    r := c.Request()
+    r.ParseForm()
+    err := client.ProcessCallback(r.PostForm, func(cb *duitku.CallbackRequest) error {
+        // handle callback
         return nil
     })
+    if err != nil {
+        return c.String(400, err.Error())
+    }
+    return c.String(200, "OK")
 })
-```
-
-Atau via `echo.WrapHandler`:
-
-```go
-e.POST("/callback", echo.WrapHandler(c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
-    // handle callback
-    return nil
-})))
 ```
 
 #### Fiber
 
 ```go
-import "github.com/rachmanzz/duitku-client/callbackfiber"
+import "net/url"
 
 app.Post("/callback", func(c fiber.Ctx) error {
-    return callbackfiber.Handle(c, client, func(cb *duitku.CallbackRequest) error {
-        // update order status based on cb.ResultCode
+    form, err := url.ParseQuery(string(c.Body()))
+    if err != nil {
+        return c.Status(400).SendString("parse form: " + err.Error())
+    }
+    err = client.ProcessCallback(form, func(cb *duitku.CallbackRequest) error {
+        // handle callback
         return nil
     })
+    if err != nil {
+        return c.Status(400).SendString(err.Error())
+    }
+    return c.SendString("OK")
 })
 ```
 
-Atau via `adaptor.HTTPHandler` (Fiber v3 built-in):
-
-```go
-import (
-    "github.com/gofiber/fiber/v3/middleware/adaptor"
-    "github.com/rachmanzz/go-duitku-client"
-)
-
-app.Post("/callback", adaptor.HTTPHandler(c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
-    // handle callback
-    return nil
-})))
-```
-
 #### Goravel
-
-Pake `Bind(&data)` idiomatic:
-
-```go
-import "github.com/rachmanzz/duitku-client/callbackgoravel"
-
-func (c *Controller) Callback(ctx http.Context) {
-    callbackgoravel.Handle(ctx, client, func(cb *duitku.CallbackRequest) error {
-        // update order status based on cb.ResultCode
-        return nil
-    })
-}
-```
-
-Atau manual:
 
 ```go
 func (c *Controller) Callback(ctx http.Context) {
@@ -220,6 +161,23 @@ func (c *Controller) Callback(ctx http.Context) {
 }
 ```
 
+Atau via `Origin()`:
+
+```go
+func (c *Controller) Callback(ctx http.Context) {
+    r := ctx.Request().Origin()
+    r.ParseForm()
+    err := client.ProcessCallback(r.PostForm, func(cb *duitku.CallbackRequest) error {
+        // handle callback
+        return nil
+    })
+    if err != nil {
+        return ctx.Response().String(400, err.Error())
+    }
+    return ctx.Response().String(200, "OK")
+}
+```
+
 ## API
 
 ### Client
@@ -230,7 +188,6 @@ func (c *Controller) Callback(ctx http.Context) {
 | `CreateInvoice(ctx, req)`                                | Create payment invoice                      |
 | `VerifyCallback(req)`                                    | Verify callback signature                   |
 | `ProcessCallback(form, handler)`                         | Parse, verify & handle callback in one call |
-| `CallbackHandler(handler)`                               | Return `http.Handler` for direct mounting   |
 
 ### Options
 
