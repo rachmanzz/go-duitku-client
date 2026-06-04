@@ -4,9 +4,25 @@ Go SDK for [Duitku POP](https://docs.duitku.com/pop/en/) payment gateway — ser
 
 ## Install
 
+Core (zero dependencies):
+
 ```bash
 go get github.com/rachmanzz/go-duitku-client
 ```
+
+Adapter framework (optional — pilih sesuai framework):
+
+```bash
+go get github.com/rachmanzz/go-duitku-client/callbackgin
+# atau
+go get github.com/rachmanzz/go-duitku-client/callbackecho
+# atau
+go get github.com/rachmanzz/go-duitku-client/callbackfiber
+# atau
+go get github.com/rachmanzz/go-duitku-client/callbackgoravel
+```
+
+> Setiap adapter adalah Go module terpisah — dependency framework cuma kepasang kalau beneran pake adapter itu.
 
 ## Usage
 
@@ -211,6 +227,7 @@ func (c *Controller) Callback(ctx http.Context) {
 | `CreateInvoice(ctx, req)`                                | Create payment invoice                      |
 | `VerifyCallback(req)`                                    | Verify callback signature                   |
 | `ProcessCallback(form, handler)`                         | Parse, verify & handle callback in one call |
+| `CallbackHandler(handler)`                               | Return `http.Handler` for direct mounting   |
 
 ### Options
 
