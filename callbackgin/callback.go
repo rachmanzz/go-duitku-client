@@ -2,7 +2,7 @@ package callbackgin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rachmanzz/duitku-client"
+	"github.com/rachmanzz/go-duitku-client"
 )
 
 func Handle(c *gin.Context, client *duitku.Client, handler duitku.CallbackHandler) {

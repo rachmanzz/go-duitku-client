@@ -2,7 +2,7 @@ package callbackecho
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/rachmanzz/duitku-client"
+	"github.com/rachmanzz/go-duitku-client"
 )
 
 func Handle(c echo.Context, client *duitku.Client, handler duitku.CallbackHandler) error {

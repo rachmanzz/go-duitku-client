@@ -2,7 +2,7 @@ package callbackgoravel
 
 import (
 	"github.com/goravel/framework/contracts/http"
-	"github.com/rachmanzz/duitku-client"
+	"github.com/rachmanzz/go-duitku-client"
 )
 
 func Handle(ctx http.Context, client *duitku.Client, handler duitku.CallbackHandler) {

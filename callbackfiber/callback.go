@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/rachmanzz/duitku-client"
+	"github.com/rachmanzz/go-duitku-client"
 )
 
 func Handle(c *fiber.Ctx, client *duitku.Client, handler duitku.CallbackHandler) error {
