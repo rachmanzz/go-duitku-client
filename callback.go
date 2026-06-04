@@ -30,6 +30,56 @@ func ParseCallbackResult(code string) CallbackResult {
 	}
 }
 
+func ParseCallbackFromMap(data map[string]any) *CallbackRequest {
+	getStr := func(k string) string {
+		v, ok := data[k]
+		if !ok {
+			return ""
+		}
+		s, _ := v.(string)
+		return s
+	}
+	getInt64 := func(k string) int64 {
+		switch v := data[k].(type) {
+		case float64:
+			return int64(v)
+		case string:
+			n, _ := strconv.ParseInt(v, 10, 64)
+			return n
+		}
+		return 0
+	}
+
+	return &CallbackRequest{
+		MerchantCode:           getStr("merchantCode"),
+		Amount:                 getInt64("amount"),
+		MerchantOrderID:        getStr("merchantOrderId"),
+		ProductDetail:          getStr("productDetail"),
+		AdditionalParam:        getStr("additionalParam"),
+		PaymentCode:            getStr("paymentCode"),
+		ResultCode:             getStr("resultCode"),
+		MerchantUserID:         getStr("merchantUserId"),
+		Reference:              getStr("reference"),
+		Signature:              getStr("signature"),
+		PublisherOrderID:       getStr("publisherOrderId"),
+		SpUserHash:             getStr("spUserHash"),
+		SettlementDate:         getStr("settlementDate"),
+		IssuerCode:             getStr("issuerCode"),
+		BankAppCode:            getStr("bankAppCode"),
+		BankOrderID:            getStr("bankOrderId"),
+		BankRespCode:           getStr("bankRespCode"),
+		BankRespMsg:            getStr("bankRespMsg"),
+		CardName:               getStr("cardName"),
+		CardType:               getStr("cardType"),
+		MaskedNumber:           getStr("maskedNumber"),
+		TokenID:                getStr("tokenId"),
+		TransactionState:       getStr("transactionState"),
+		TransactionStateStatus: getStr("transactionStateStatus"),
+		MerchantCustomerID:     getStr("merchantCustomerId"),
+		ExpiryDate:             getStr("expiryDate"),
+	}
+}
+
 func ParseCallback(form url.Values) (*CallbackRequest, error) {
 	amountStr := form.Get("amount")
 	var amount int64

@@ -64,6 +64,16 @@ if err != nil {
 
 ### Handle Callback
 
+Semua callback dari Duitku dikirim sebagai POST form. Library ini nyediain 3 cara handle:
+
+1. Manual — `ProcessCallback(r.PostForm, handler)` — bebas pake framework apapun
+2. Via `http.Handler` — `client.CallbackHandler(handler)` — tinggal mount di router
+3. Adapter khusus framework
+
+Pilih aja sesuai framework yang dipake.
+
+#### net/http (standard library)
+
 ```go
 func callbackHandler(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
@@ -84,7 +94,14 @@ func callbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### Framework Adapters
+Atau pakai `CallbackHandler`:
+
+```go
+http.Handle("/callback", c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
+    // handle callback
+    return nil
+}))
+```
 
 #### Gin
 
@@ -97,6 +114,15 @@ r.POST("/callback", func(c *gin.Context) {
         return nil
     })
 })
+```
+
+Atau via `gin.WrapH`:
+
+```go
+r.POST("/callback", gin.WrapH(c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
+    // handle callback
+    return nil
+})))
 ```
 
 #### Echo
@@ -112,6 +138,15 @@ e.POST("/callback", func(c echo.Context) error {
 })
 ```
 
+Atau via `echo.WrapHandler`:
+
+```go
+e.POST("/callback", echo.WrapHandler(c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
+    // handle callback
+    return nil
+})))
+```
+
 #### Fiber
 
 ```go
@@ -125,7 +160,20 @@ app.Post("/callback", func(c *fiber.Ctx) error {
 })
 ```
 
+Atau via `fiber.WrapH` / `adaptor.HTTPHandler`:
+
+```go
+import "github.com/gofiber/adaptor/v2"
+
+app.Post("/callback", adaptor.HTTPHandler(c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
+    // handle callback
+    return nil
+})))
+```
+
 #### Goravel
+
+Pake `Bind(&data)` idiomatic:
 
 ```go
 import "github.com/rachmanzz/duitku-client/callbackgoravel"
@@ -135,6 +183,21 @@ func (c *Controller) Callback(ctx http.Context) {
         // update order status based on cb.ResultCode
         return nil
     })
+}
+```
+
+Atau manual:
+
+```go
+func (c *Controller) Callback(ctx http.Context) {
+    var data map[string]any
+    ctx.Request().Bind(&data)
+    cb := duitku.ParseCallbackFromMap(data)
+    if !client.VerifyCallback(cb) {
+        return ctx.Response().String(400, "invalid signature")
+    }
+    // handle callback
+    return ctx.Response().String(200, "OK")
 }
 ```
 
@@ -168,6 +231,7 @@ func (c *Controller) Callback(ctx http.Context) {
 | Function                                                                              | Description                                   |
 | ------------------------------------------------------------------------------------- | --------------------------------------------- |
 | `ParseCallback(form)`                                                               | Parse `url.Values` into `CallbackRequest` |
+| `ParseCallbackFromMap(data)`                                                        | Parse `map[string]any` into `CallbackRequest` |
 | `VerifyCallbackSignature(merchantCode, amount, merchantOrderID, apiKey, signature)` | Verify callback HMAC                          |
 | `ParseCallbackResult(code)`                                                         | Convert result code to enum                   |
 
