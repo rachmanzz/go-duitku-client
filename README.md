@@ -5,7 +5,7 @@ Go SDK for [Duitku POP](https://docs.duitku.com/pop/en/) payment gateway — ser
 ## Install
 
 ```bash
-go get github.com/rachmanzz/duitku-client
+go get github.com/rachmanzz/go-duitku-client
 ```
 
 ## Usage
@@ -142,34 +142,34 @@ func (c *Controller) Callback(ctx http.Context) {
 
 ### Client
 
-| Method | Description |
-|--------|-------------|
-| `NewClient(merchantCode, apiKey string, opts ...Option)` | Create new client |
-| `CreateInvoice(ctx, req)` | Create payment invoice |
-| `VerifyCallback(req)` | Verify callback signature |
-| `ProcessCallback(form, handler)` | Parse, verify & handle callback in one call |
+| Method                                                     | Description                                 |
+| ---------------------------------------------------------- | ------------------------------------------- |
+| `NewClient(merchantCode, apiKey string, opts ...Option)` | Create new client                           |
+| `CreateInvoice(ctx, req)`                                | Create payment invoice                      |
+| `VerifyCallback(req)`                                    | Verify callback signature                   |
+| `ProcessCallback(form, handler)`                         | Parse, verify & handle callback in one call |
 
 ### Options
 
-| Option | Description |
-|--------|-------------|
-| `WithBaseURL(url)` | Set API endpoint URL |
+| Option                     | Description            |
+| -------------------------- | ---------------------- |
+| `WithBaseURL(url)`       | Set API endpoint URL   |
 | `WithHTTPClient(client)` | Set custom HTTP client |
 
 ### Constants
 
-| Constant | Value |
-|----------|-------|
-| `BaseURLSandbox` | `https://api-sandbox.duitku.com` |
-| `BaseURLProduction` | `https://api-prod.duitku.com` |
+| Constant              | Value                              |
+| --------------------- | ---------------------------------- |
+| `BaseURLSandbox`    | `https://api-sandbox.duitku.com` |
+| `BaseURLProduction` | `https://api-prod.duitku.com`    |
 
 ### Standalone Functions
 
-| Function | Description |
-|----------|-------------|
-| `ParseCallback(form)` | Parse `url.Values` into `CallbackRequest` |
-| `VerifyCallbackSignature(merchantCode, amount, merchantOrderID, apiKey, signature)` | Verify callback HMAC |
-| `ParseCallbackResult(code)` | Convert result code to enum |
+| Function                                                                              | Description                                   |
+| ------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `ParseCallback(form)`                                                               | Parse `url.Values` into `CallbackRequest` |
+| `VerifyCallbackSignature(merchantCode, amount, merchantOrderID, apiKey, signature)` | Verify callback HMAC                          |
+| `ParseCallbackResult(code)`                                                         | Convert result code to enum                   |
 
 ## Error Handling
 
