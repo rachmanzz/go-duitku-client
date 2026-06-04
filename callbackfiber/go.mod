@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/gofiber/fiber/v3 v3.3.0
-	github.com/rachmanzz/go-duitku-client v0.0.0-00010101000000-000000000000
+	github.com/rachmanzz/go-duitku-client v1.3.0
 )
 
 require (
@@ -24,5 +24,3 @@ require (
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 )
-
-replace github.com/rachmanzz/go-duitku-client => ../
