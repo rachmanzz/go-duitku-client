@@ -168,7 +168,7 @@ e.POST("/callback", echo.WrapHandler(c.CallbackHandler(func(cb *duitku.CallbackR
 ```go
 import "github.com/rachmanzz/duitku-client/callbackfiber"
 
-app.Post("/callback", func(c *fiber.Ctx) error {
+app.Post("/callback", func(c fiber.Ctx) error {
     return callbackfiber.Handle(c, client, func(cb *duitku.CallbackRequest) error {
         // update order status based on cb.ResultCode
         return nil
@@ -176,10 +176,13 @@ app.Post("/callback", func(c *fiber.Ctx) error {
 })
 ```
 
-Atau via `fiber.WrapH` / `adaptor.HTTPHandler`:
+Atau via `adaptor.HTTPHandler` (Fiber v3 built-in):
 
 ```go
-import "github.com/gofiber/adaptor/v2"
+import (
+    "github.com/gofiber/fiber/v3/middleware/adaptor"
+    "github.com/rachmanzz/go-duitku-client"
+)
 
 app.Post("/callback", adaptor.HTTPHandler(c.CallbackHandler(func(cb *duitku.CallbackRequest) error {
     // handle callback
