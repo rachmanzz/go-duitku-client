@@ -72,7 +72,7 @@ jobs:
             --label "compliance" \
             --state open \
             --json number \
-            --jq '.[0].number' 2>/dev/null)
+            --jq '.[0].number' 2>/dev/null || echo "null")
 
           if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
             gh issue comment "$EXISTING" \
@@ -94,7 +94,7 @@ jobs:
             --label "compliance" \
             --state open \
             --json number \
-            --jq '.[0].number' 2>/dev/null)
+            --jq '.[0].number' 2>/dev/null || echo "null")
           if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
             gh issue close "$EXISTING" \
               --comment "✅ Compliance check passed. All SDK fields match the official documentation."
