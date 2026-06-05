@@ -2,6 +2,18 @@
 
 Go SDK for [Duitku POP](https://docs.duitku.com/pop/en/) payment gateway — server-side integration.
 
+> ⚠️ This is a **community-maintained** SDK, not an official Duitku package.
+
+## Compliance
+
+This SDK is verified against the official Duitku POP documentation **every week** via an automated AI compliance check ([Big Pickle](https://opencode.ai)). The checker:
+
+- Fetches the live docs from `docs.duitku.com`
+- Compares every field, header, endpoint, signature, and callback parameter
+- Creates a GitHub issue immediately if any discrepancy is found
+
+Status: [![Compliance](https://github.com/rachmanzz/go-duitku-client/actions/workflows/check-sdk-compliance.yml/badge.svg?branch=ops/compliance)](https://github.com/rachmanzz/go-duitku-client/actions/workflows/check-sdk-compliance.yml)
+
 ## Install
 
 ```bash
@@ -66,7 +78,7 @@ if err != nil {
 
 ### Handle Callback
 
-Semua callback dari Duitku dikirim sebagai POST form. Cukup pake `ProcessCallback` — works with any framework:
+All callbacks from Duitku are sent as POST form data. Use `ProcessCallback` — works with any framework:
 
 #### net/http
 
@@ -161,7 +173,7 @@ func (c *Controller) Callback(ctx http.Context) {
 }
 ```
 
-Atau via `Origin()`:
+Or via `Origin()`:
 
 ```go
 func (c *Controller) Callback(ctx http.Context) {
