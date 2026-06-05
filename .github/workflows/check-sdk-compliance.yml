@@ -21,8 +21,6 @@ jobs:
     steps:
       - name: Checkout workflow branch (ops/compliance)
         uses: actions/checkout@v4
-        with:
-          path: ci
 
       - name: Checkout SDK source (main)
         uses: actions/checkout@v4
