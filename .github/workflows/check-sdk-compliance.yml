@@ -16,6 +16,8 @@ permissions:
 jobs:
   compliance-check:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout workflow branch (ops/compliance)
         uses: actions/checkout@v4
