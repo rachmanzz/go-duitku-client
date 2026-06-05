@@ -30,35 +30,71 @@ jobs:
           ref: main
           path: sdk
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-          cache-dependency-path: ci/tools/check-compliance/go.mod
+      - name: Install opencode
+        run: |
+          npm install -g @anthropic-ai/opencode
 
-      - name: Run compliance checker
+      - name: Run compliance check with opencode
         id: check
         continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          cd ci/tools/check-compliance
-          go run main.go -sdk "${{ github.workspace }}/sdk" 2>&1 | tee /tmp/compliance-output.txt
-          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+          cat > /tmp/compliance-prompt.md << 'PROMPT'
+          You are a strict API compliance checker for the Duitku POP Go SDK.
+
+          ## Task
+          1. Fetch the official documentation from https://docs.duitku.com/pop/id/
+          2. Read all Go source files in ${{ github.workspace }}/sdk/ (duitku.go, invoice.go, callback.go, models.go, signature.go)
+          3. Compare the SDK implementation against the official documentation
+          4. Report any differences or issues found
+
+          ## Sections to check
+
+          ### A. CreateInvoice API
+          - Endpoint: POST /api/merchant/createInvoice
+          - Base URLs: sandbox (api-sandbox.duitku.com) and production (api-prod.duitku.com)
+          - Request headers: Content-Type, x-duitku-timestamp, x-duitku-signature, x-duitku-merchantcode
+          - Signature: stringToSign = merchantCode + timestamp, HMAC_SHA256(stringToSign, apiKey)
+          - Request fields: paymentAmount (int64, required), merchantOrderId (string, required), productDetails (string, required), email (string, required), callbackUrl (string, required), returnUrl (string, required), plus optional fields (additionalParam, merchantUserInfo, customerVaName, phoneNumber, itemDetails, customerDetail, creditCardDetail, expiryPeriod, paymentMethod)
+          - Response fields: merchantCode, reference, paymentUrl, statusCode, statusMessage
+
+          ### B. Callback
+          - 26 fields total (merchantCode, amount, merchantOrderId, productDetail, additionalParam, paymentCode, resultCode, merchantUserId, reference, signature, publisherOrderId, spUserHash, settlementDate, issuerCode, bankAppCode, bankOrderId, bankRespCode, bankRespMsg, cardName, cardType, maskedNumber, tokenId, transactionState, transactionStateStatus, merchantCustomerId, expiryDate)
+          - Callback signature: stringToSign = merchantCode + amount + merchantOrderId, HMAC SHA256
+          - Must use constant-time comparison (hmac.Equal)
+
+          ### C. Sub-objects
+          - ItemDetail: name (string), price (int64), quantity (int)
+          - CustomerDetail: firstName, lastName, email, phoneNumber, billingAddress (*Address), shippingAddress (*Address), merchantCustomerId
+          - Address: firstName, lastName, address, city, postalCode, phone, countryCode
+          - CreditCardDetail: saveCardToken (int), acquirer (string), binWhitelist ([]string)
+
+          ## Output format
+          First line: either "PASS" or "FAIL"
+          If FAIL, list each issue on a separate line starting with "- "
+          Include the file name and line if relevant.
+
+          Be thorough. Check every field name, JSON tag, form tag, type, and omitempty.
+          PROMPT
+
+          opencode -p "$(cat /tmp/compliance-prompt.md)" 2>&1 | tee /tmp/compliance-output.txt
+          echo "result=$(head -1 /tmp/compliance-output.txt)" >> $GITHUB_OUTPUT
 
       - name: Report results
         run: |
-          echo "## Compliance Check Results" > $GITHUB_STEP_SUMMARY
+          echo "## OpenCode Compliance Check Results" > $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           cat /tmp/compliance-output.txt >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          echo "Exit code: ${{ steps.check.outputs.exit_code }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Create/update issue on failure
-        if: steps.check.outputs.exit_code != '0'
+        if: steps.check.outputs.result == 'FAIL'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           BODY="## ⚠️ SDK Compliance Issues Detected\n\n"
-          BODY+="The Big Pickle compliance checker has detected differences between the SDK implementation and the official Duitku POP documentation.\n\n"
+          BODY+="OpenCode has detected differences between the SDK implementation and the official Duitku POP documentation.\n\n"
           BODY+="### Details\n\n"
           BODY+="\`\`\`\n"
           BODY+="$(cat /tmp/compliance-output.txt)\n"
@@ -88,7 +124,7 @@ jobs:
           fi
 
       - name: Close issue on success
-        if: steps.check.outputs.exit_code == '0'
+        if: steps.check.outputs.result == 'PASS'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
