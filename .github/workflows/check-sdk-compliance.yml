@@ -63,8 +63,9 @@ jobs:
           Check: field names, JSON tags, form tags, Go types, omitempty on optional fields, and signature algorithms.
           PROMPT
 
-          opencode run "$(cat /tmp/compliance-prompt.md)" 2>&1 | tee /tmp/compliance-output.txt
-          head -1 /tmp/compliance-output.txt | grep -q "^PASS" && echo "result=PASS" >> $GITHUB_OUTPUT || echo "result=FAIL" >> $GITHUB_OUTPUT
+          opencode run "$(cat /tmp/compliance-prompt.md)" 2>&1 | tee /tmp/compliance-raw.txt
+          sed 's/\x1b\[[0-9;]*m//g' /tmp/compliance-raw.txt | tee /tmp/compliance-output.txt
+          grep -q "^PASS$" /tmp/compliance-output.txt && echo "result=PASS" >> $GITHUB_OUTPUT || echo "result=FAIL" >> $GITHUB_OUTPUT
 
       - name: Report results
         run: |
