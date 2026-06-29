@@ -76,6 +76,7 @@ func ParseCallbackFromMap(data map[string]any) *CallbackRequest {
 		TransactionState:       getStr("transactionState"),
 		TransactionStateStatus: getStr("transactionStateStatus"),
 		MerchantCustomerID:     getStr("merchantCustomerId"),
+		CustomerName:           getStr("customerName"),
 		ExpiryDate:             getStr("expiryDate"),
 	}
 }
@@ -117,6 +118,7 @@ func ParseCallback(form url.Values) (*CallbackRequest, error) {
 		TransactionState:       form.Get("transactionState"),
 		TransactionStateStatus: form.Get("transactionStateStatus"),
 		MerchantCustomerID:     form.Get("merchantCustomerId"),
+		CustomerName:           form.Get("customerName"),
 		ExpiryDate:             form.Get("expiryDate"),
 	}, nil
 }
