@@ -85,4 +85,5 @@ type CallbackRequest struct {
 	TransactionStateStatus string `form:"transactionStateStatus"`
 	MerchantCustomerID   string `form:"merchantCustomerId"`
 	ExpiryDate           string `form:"expiryDate"`
+	CustomerName         string `form:"customerName"`
 }
